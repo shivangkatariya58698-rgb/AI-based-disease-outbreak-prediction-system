@@ -1,1 +1,2040 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        AI Disease Outbreak Prediction System
+    </title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7fb;
+            color: #172b4d;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 94%;
+            max-width: 1500px;
+            margin: auto;
+            padding: 30px 0 60px;
+        }
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .header {
+            background: #ffffff;
+            padding: 28px 32px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.06);
+        }
+
+        .header h1 {
+            color: #123c69;
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        /* =========================
+           SECTION
+        ========================= */
+
+        .section {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.06);
+        }
+
+        .section-title {
+            font-size: 25px;
+            color: #123c69;
+            margin-bottom: 22px;
+        }
+
+        /* =========================
+           FORM
+        ========================= */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 22px 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #123c69;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            height: 58px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 0 16px;
+            font-size: 16px;
+            background: #ffffff;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .button-area {
+            margin-top: 25px;
+        }
+
+        .predict-button {
+            border: none;
+            background: #123c69;
+            color: white;
+            padding: 15px 32px;
+            font-size: 17px;
+            font-weight: bold;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .predict-button:hover {
+            background: #0b2d50;
+        }
+
+        /* =========================
+           ERROR
+        ========================= */
+
+        .error-box {
+            background: #fee2e2;
+            border-left: 5px solid #dc2626;
+            color: #991b1b;
+            padding: 15px 18px;
+            border-radius: 8px;
+            margin-bottom: 22px;
+            font-weight: 600;
+        }
+
+        /* =========================
+           SUMMARY CARDS
+        ========================= */
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.06);
+            border-left: 5px solid #2563eb;
+        }
+
+        .summary-card h3 {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .summary-card .value {
+            font-size: 26px;
+            font-weight: bold;
+            color: #123c69;
+        }
+
+        /* =========================
+           RISK BADGES
+        ========================= */
+
+        .risk-badge {
+            display: inline-block;
+            padding: 7px 13px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .risk-low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .risk-moderate {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .risk-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* =========================
+           FORECAST TABLE
+        ========================= */
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .forecast-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            min-width: 850px;
+        }
+
+        .forecast-table th {
+            background: #123c69;
+            color: white;
+            padding: 14px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .forecast-table td {
+            padding: 13px 14px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        .forecast-table tr:hover {
+            background: #f8fafc;
+        }
+
+        /* =========================
+           CHART
+        ========================= */
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 380px;
+        }
+
+        /* =========================
+           DASHBOARD STATISTICS
+        ========================= */
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 18px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.06);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card p {
+            color: #123c69;
+            font-size: 27px;
+            font-weight: bold;
+        }
+
+        /* =========================
+           TWO COLUMN CHARTS
+        ========================= */
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        /* =========================
+           MODEL PERFORMANCE
+        ========================= */
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .metric-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 7px;
+        }
+
+        .metric-card p {
+            font-size: 24px;
+            font-weight: bold;
+            color: #123c69;
+        }
+
+        .evaluation-image {
+            width: 100%;
+            max-width: 850px;
+            display: block;
+            margin: 20px auto;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* =========================
+           HISTORY TABLE
+        ========================= */
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 950px;
+        }
+
+        .history-table th {
+            background: #123c69;
+            color: white;
+            padding: 13px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .history-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        .history-wrapper {
+            overflow-x: auto;
+        }
+
+        /* =========================
+           EMPTY MESSAGE
+        ========================= */
+
+        .empty-message {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        .footer {
+            text-align: center;
+            color: #64748b;
+            padding: 25px;
+            font-size: 14px;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1100px) {
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+        }
+
+        @media (max-width: 800px) {
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+        }
+
+        @media (max-width: 500px) {
+
+            .container {
+                width: 96%;
+                padding-top: 15px;
+            }
+
+            .section {
+                padding: 18px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 25px;
+            }
+
+            .summary-grid,
+            .stats-grid,
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+    <!-- =====================================
+         HEADER
+    ====================================== -->
+
+    <div class="header">
+
+        <h1>
+            AI Disease Outbreak Prediction System
+        </h1>
+
+        <p>
+            Machine Learning based disease forecasting,
+            risk analysis and outbreak monitoring
+        </p>
+
+    </div>
+
+
+    <!-- =====================================
+         PREDICTION FORM
+    ====================================== -->
+
+    <div class="section">
+
+        <h2 class="section-title">
+            Predict Disease Outbreak
+        </h2>
+
+
+        {% if error %}
+
+        <div class="error-box">
+            {{ error }}
+        </div>
+
+        {% endif %}
+
+
+        <form method="POST"
+              action="{{ url_for('main.predict') }}">
+
+            <div class="form-grid">
+
+
+                <!-- Disease -->
+
+                <div class="form-group">
+
+                    <label for="disease">
+                        Disease
+                    </label>
+
+                    <select
+                        id="disease"
+                        name="disease"
+                        required>
+
+                        <option value="">
+                            Select Disease
+                        </option>
+
+                        <option value="Dengue"
+                            {% if form_data and form_data.get('disease') == 'Dengue' %}
+                            selected
+                            {% endif %}>
+                            Dengue
+                        </option>
+
+                        <option value="Malaria"
+                            {% if form_data and form_data.get('disease') == 'Malaria' %}
+                            selected
+                            {% endif %}>
+                            Malaria
+                        </option>
+
+                        <option value="Influenza"
+                            {% if form_data and form_data.get('disease') == 'Influenza' %}
+                            selected
+                            {% endif %}>
+                            Influenza
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Location -->
+
+                <div class="form-group">
+
+                    <label for="location">
+                        Location
+                    </label>
+
+                    <select
+                        id="location"
+                        name="location"
+                        required>
+
+                        <option value="">
+                            Select Location
+                        </option>
+
+                        <option value="Dehradun"
+                            {% if form_data and form_data.get('location') == 'Dehradun' %}
+                            selected
+                            {% endif %}>
+                            Dehradun
+                        </option>
+
+                        <option value="Haridwar"
+                            {% if form_data and form_data.get('location') == 'Haridwar' %}
+                            selected
+                            {% endif %}>
+                            Haridwar
+                        </option>
+
+                        <option value="Nainital"
+                            {% if form_data and form_data.get('location') == 'Nainital' %}
+                            selected
+                            {% endif %}>
+                            Nainital
+                        </option>
+
+                        <option value="Udham Singh Nagar"
+                            {% if form_data and form_data.get('location') == 'Udham Singh Nagar' %}
+                            selected
+                            {% endif %}>
+                            Udham Singh Nagar
+                        </option>
+
+                        <option value="Haldwani"
+                            {% if form_data and form_data.get('location') == 'Haldwani' %}
+                            selected
+                            {% endif %}>
+                            Haldwani
+                        </option>
+
+                    </select>
+
+                </div>
+                <!--
+                    Current cases, previous cases, temperature, humidity,
+                    rainfall and population are loaded automatically by
+                    the Flask backend from the latest matching record.
+                -->
+
+
+
+
+                <!-- Forecast Date -->
+
+                <div class="form-group">
+
+                    <label for="forecast_date">
+                        Forecast Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="forecast_date"
+                        name="forecast_date"
+                        value="{{ form_data.get('forecast_date', '') if form_data else '' }}"
+                        required>
+
+                </div>
+
+            </div>
+
+
+            <p style="margin-top: 15px; color: #64748b; font-size: 14px;">
+                Current cases, previous cases, temperature, humidity,
+                rainfall and population are automatically loaded from the
+                latest historical record for the selected disease and location.
+            </p>
+
+            <div class="button-area">
+
+                <button
+                    type="submit"
+                    class="predict-button">
+
+                    Predict 7-Day Outbreak
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+
+    {% if result %}
+
+    <!-- =====================================
+         FORECAST SUMMARY
+    ====================================== -->
+
+    <div class="section">
+
+        <h2 class="section-title">
+            7-Day Forecast Summary
+        </h2>
+
+
+        <div class="summary-grid">
+
+
+            <div class="summary-card">
+
+                <h3>
+                    Average Predicted Cases
+                </h3>
+
+                <div class="value">
+                    {{ result.average_predicted_cases }}
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <h3>
+                    Maximum Predicted Cases
+                </h3>
+
+                <div class="value">
+                    {{ result.maximum_predicted_cases }}
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <h3>
+                    Highest Risk Day
+                </h3>
+
+                <div class="value">
+                    {{ result.highest_risk_day }}
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <h3>
+                    Highest Risk
+                </h3>
+
+                <div class="value">
+
+                    {% if result.highest_risk == "High" %}
+
+                    <span class="risk-badge risk-high">
+                        HIGH
+                    </span>
+
+                    {% elif result.highest_risk == "Moderate" %}
+
+                    <span class="risk-badge risk-moderate">
+                        MODERATE
+                    </span>
+
+                    {% else %}
+
+                    <span class="risk-badge risk-low">
+                        LOW
+                    </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================
+             FORECAST TABLE
+        ================================== -->
+
+        <h3 style="margin: 25px 0 12px;">
+            Daily Forecast
+        </h3>
+
+
+        <div class="table-wrapper">
+
+            <table class="forecast-table">
+
+                <thead>
+
+                <tr>
+
+                    <th>
+                        Day
+                    </th>
+
+                    <th>
+                        Date
+                    </th>
+
+                    <th>
+                        Predicted Cases
+                    </th>
+
+                    <th>
+                        Growth
+                    </th>
+
+                    <th>
+                        Risk Score
+                    </th>
+
+                    <th>
+                        Risk Level
+                    </th>
+
+                    <th>
+                        Case Level
+                    </th>
+
+                    <th>
+                        Growth Level
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                {% for forecast in result.forecasts %}
+
+                <tr>
+
+                    <td>
+                        Day {{ forecast.day }}
+                    </td>
+
+                    <td>
+                        {{ forecast.date }}
+                    </td>
+
+                    <td>
+                        <strong>
+                            {{ forecast.predicted_cases }}
+                        </strong>
+                    </td>
+
+                    <td>
+                        {{ forecast.growth_rate }}%
+                    </td>
+
+                    <td>
+                        {{ forecast.risk_score }}
+                    </td>
+
+                    <td>
+
+                        {% if forecast.risk == "High" %}
+
+                        <span class="risk-badge risk-high">
+                            HIGH
+                        </span>
+
+                        {% elif forecast.risk == "Moderate" %}
+
+                        <span class="risk-badge risk-moderate">
+                            MODERATE
+                        </span>
+
+                        {% else %}
+
+                        <span class="risk-badge risk-low">
+                            LOW
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+                        {{ forecast.case_level }}
+                    </td>
+
+                    <td>
+                        {{ forecast.growth_level }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================
+         7-DAY FORECAST CHART
+    ====================================== -->
+
+    <div class="section">
+
+        <h2 class="section-title">
+            7-Day Disease Forecast
+        </h2>
+
+        <div class="chart-container">
+
+            <canvas id="forecastChart"></canvas>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+
+    <!-- =====================================
+         ANALYTICS DASHBOARD
+    ====================================== -->
+
+    <div class="section">
+
+        <h2 class="section-title">
+            Disease Analytics Dashboard
+        </h2>
+
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+
+                <h3>
+                    Total Cases
+                </h3>
+
+                <p id="totalCases">
+                    -
+                </p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>
+                    Average Cases
+                </h3>
+
+                <p id="averageCases">
+                    -
+                </p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>
+                    Maximum Cases
+                </h3>
+
+                <p id="maximumCases">
+                    -
+                </p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>
+                    Diseases
+                </h3>
+
+                <p id="totalDiseases">
+                    -
+                </p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>
+                    Locations
+                </h3>
+
+                <p id="totalLocations">
+                    -
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================
+         HISTORICAL TREND
+    ====================================== -->
+
+    <div class="section">
+
+        <h2 class="section-title">
+            Historical Disease Trend
+        </h2>
+
+        <div class="chart-container">
+
+            <canvas id="trendChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================
+         DISEASE + LOCATION CHARTS
+    ====================================== -->
+
+    <div class="section">
+
+        <div class="chart-grid">
+
+
+            <div>
+
+                <h2 class="section-title">
+                    Cases by Disease
+                </h2>
+
+                <div class="chart-container">
+
+                    <canvas id="diseaseChart"></canvas>
+
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <h2 class="section-title">
+                    Cases by Location
+                </h2>
+
+                <div class="chart-container">
+
+                    <canvas id="locationChart"></canvas>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================
+         MODEL PERFORMANCE
+    ====================================== -->
+
+    <div class="section">
+
+        <h2 class="section-title">
+            Machine Learning Model Performance
+        </h2>
+
+
+        <div class="metrics-grid">
+
+
+            <div class="metric-card">
+
+                <h3>
+                    MAE
+                </h3>
+
+                <p id="mae">
+                    -
+                </p>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <h3>
+                    RMSE
+                </h3>
+
+                <p id="rmse">
+                    -
+                </p>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <h3>
+                    R² Score
+                </h3>
+
+                <p id="r2">
+                    -
+                </p>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <h3>
+                    Test Samples
+                </h3>
+
+                <p id="testSamples">
+                    -
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+        <h3 style="margin: 20px 0 10px;">
+            Actual vs Predicted
+        </h3>
+
+
+        <img
+            class="evaluation-image"
+            src="{{ url_for('static', filename='evaluation/actual_vs_predicted.png') }}"
+            alt="Actual vs Predicted">
+
+
+        <h3 style="margin: 25px 0 10px;">
+            Feature Importance
+        </h3>
+
+
+        <div class="chart-container">
+
+            <canvas id="featureChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================
+         PREDICTION HISTORY
+    ====================================== -->
+
+    <div class="section">
+
+        <h2 class="section-title">
+            Prediction History
+        </h2>
+
+
+        <div class="history-wrapper">
+
+            <table class="history-table">
+
+                <thead>
+
+                <tr>
+
+                    <th>
+                        Prediction Date
+                    </th>
+
+                    <th>
+                        Forecast Date
+                    </th>
+
+                    <th>
+                        Disease
+                    </th>
+
+                    <th>
+                        Location
+                    </th>
+
+                    <th>
+                        Current Cases
+                    </th>
+
+                    <th>
+                        Predicted Cases
+                    </th>
+
+                    <th>
+                        Growth
+                    </th>
+
+                    <th>
+                        Risk Score
+                    </th>
+
+                    <th>
+                        Risk
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="historyBody">
+
+                <tr>
+
+                    <td colspan="9"
+                        class="empty-message">
+
+                        Loading prediction history...
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================
+         FOOTER
+    ====================================== -->
+
+    <div class="footer">
+
+        <p>
+            AI-Based Disease Outbreak Prediction System
+        </p>
+
+        <p>
+            Final Year B.Tech Project
+        </p>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- =========================================
+     JAVASCRIPT
+========================================= -->
+
+<script>
+
+
+/* ==========================================
+   7-DAY FORECAST CHART
+========================================== */
+
+{% if result %}
+
+const forecastDates = [
+
+    {% for forecast in result.forecasts %}
+    "{{ forecast.date }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+
+];
+
+
+const forecastCases = [
+
+    {% for forecast in result.forecasts %}
+    {{ forecast.predicted_cases }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+
+];
+
+
+const forecastChartCanvas =
+    document.getElementById("forecastChart");
+
+
+if (forecastChartCanvas) {
+
+    new Chart(
+        forecastChartCanvas,
+        {
+
+            type: "line",
+
+            data: {
+
+                labels: forecastDates,
+
+                datasets: [
+
+                    {
+
+                        label:
+                            "Predicted Cases",
+
+                        data:
+                            forecastCases,
+
+                        tension: 0.3,
+
+                        borderWidth: 3,
+
+                        pointRadius: 5,
+
+                        fill: false
+
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+
+                        display: true
+
+                    }
+
+                },
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        title: {
+
+                            display: true,
+
+                            text: "Predicted Cases"
+
+                        }
+
+                    },
+
+                    x: {
+
+                        title: {
+
+                            display: true,
+
+                            text: "Forecast Date"
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+    );
+
+}
+
+{% endif %}
+
+
+
+/* ==========================================
+   DASHBOARD DATA
+========================================== */
+
+async function loadDashboardData() {
+
+    try {
+
+        const response =
+            await fetch(
+                "{{ url_for('main.dashboard_data') }}"
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Dashboard data could not be loaded."
+            );
+
+        }
+
+        const data =
+            await response.json();
+
+
+        /* Statistics */
+
+        document.getElementById(
+            "totalCases"
+        ).textContent =
+            Number(
+                data.statistics.total_cases
+            ).toLocaleString();
+
+
+        document.getElementById(
+            "averageCases"
+        ).textContent =
+            Number(
+                data.statistics.average_cases
+            ).toLocaleString();
+
+
+        document.getElementById(
+            "maximumCases"
+        ).textContent =
+            Number(
+                data.statistics.maximum_cases
+            ).toLocaleString();
+
+
+        document.getElementById(
+            "totalDiseases"
+        ).textContent =
+            data.statistics.total_diseases;
+
+
+        document.getElementById(
+            "totalLocations"
+        ).textContent =
+            data.statistics.total_locations;
+
+
+
+        /* ==================================
+           HISTORICAL TREND
+        ================================== */
+
+        const trendCanvas =
+            document.getElementById(
+                "trendChart"
+            );
+
+
+        if (trendCanvas) {
+
+            new Chart(
+                trendCanvas,
+                {
+
+                    type: "line",
+
+                    data: {
+
+                        labels:
+                            data.trend.dates,
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    "Total Disease Cases",
+
+                                data:
+                                    data.trend.cases,
+
+                                tension: 0.3,
+
+                                borderWidth: 2,
+
+                                pointRadius: 2,
+
+                                fill: false
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+
+
+        /* ==================================
+           DISEASE CHART
+        ================================== */
+
+        const diseaseCanvas =
+            document.getElementById(
+                "diseaseChart"
+            );
+
+
+        if (diseaseCanvas) {
+
+            new Chart(
+                diseaseCanvas,
+                {
+
+                    type: "bar",
+
+                    data: {
+
+                        labels:
+                            data.diseases.names,
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    "Cases",
+
+                                data:
+                                    data.diseases.cases,
+
+                                borderWidth: 1
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+
+                                display: false
+
+                            }
+
+                        },
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+
+
+        /* ==================================
+           LOCATION CHART
+        ================================== */
+
+        const locationCanvas =
+            document.getElementById(
+                "locationChart"
+            );
+
+
+        if (locationCanvas) {
+
+            new Chart(
+                locationCanvas,
+                {
+
+                    type: "bar",
+
+                    data: {
+
+                        labels:
+                            data.locations.names,
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    "Cases",
+
+                                data:
+                                    data.locations.cases,
+
+                                borderWidth: 1
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        indexAxis: "y",
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+
+                                display: false
+
+                            }
+
+                        },
+
+                        scales: {
+
+                            x: {
+
+                                beginAtZero: true
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Dashboard error:",
+            error
+        );
+
+    }
+
+}
+
+
+
+/* ==========================================
+   MODEL EVALUATION
+========================================== */
+
+async function loadModelEvaluation() {
+
+    try {
+
+        const response =
+            await fetch(
+                "{{ url_for('main.model_evaluation') }}"
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Model evaluation could not be loaded."
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+// ==================================
+// MODEL METRICS
+// ==================================
+
+const metrics = data.metrics || data.model_metrics || data;
+
+document.getElementById("mae").textContent =
+    metrics.MAE ??
+    metrics.mae ??
+    data.MAE ??
+    data.mae ??
+    "-";
+
+document.getElementById("rmse").textContent =
+    metrics.RMSE ??
+    metrics.rmse ??
+    data.RMSE ??
+    data.rmse ??
+    "-";
+
+document.getElementById("r2").textContent =
+    metrics.R2 ??
+    metrics.r2 ??
+    data.R2 ??
+    data.r2 ??
+    "-";
+
+document.getElementById("testSamples").textContent =
+    data.test_samples ??
+    data.test_samples_count ??
+    metrics.test_samples ??
+    "-";
+
+
+        document.getElementById(
+            "testSamples"
+        ).textContent =
+            data.test_samples ??
+            data.test_samples_count ??
+            "-";
+
+
+
+        /* ==================================
+           FEATURE IMPORTANCE
+        ================================== */
+
+        const featureCanvas =
+            document.getElementById(
+                "featureChart"
+            );
+
+
+        let features = [];
+        let importance = [];
+
+
+        if (Array.isArray(data.feature_importance)) {
+
+            features =
+                data.feature_importance.map(
+                    item =>
+                        item.feature
+                );
+
+            importance =
+                data.feature_importance.map(
+                    item =>
+                        item.importance
+                );
+
+        }
+
+
+        if (
+            featureCanvas &&
+            features.length > 0
+        ) {
+
+            new Chart(
+                featureCanvas,
+                {
+
+                    type: "bar",
+
+                    data: {
+
+                        labels:
+                            features,
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    "Importance",
+
+                                data:
+                                    importance,
+
+                                borderWidth: 1
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+
+                                display: false
+
+                            }
+
+                        },
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Evaluation error:",
+            error
+        );
+
+    }
+
+}
+
+
+
+/* ==========================================
+   PREDICTION HISTORY
+========================================== */
+
+async function loadPredictionHistory() {
+
+    try {
+
+        const response =
+            await fetch(
+                "{{ url_for('main.prediction_history') }}"
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Prediction history could not be loaded."
+            );
+
+        }
+
+
+        const history =
+            await response.json();
+
+
+        const body =
+            document.getElementById(
+                "historyBody"
+            );
+
+
+        if (!history || history.length === 0) {
+
+            body.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="9"
+                        class="empty-message">
+
+                        No prediction history available.
+
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        body.innerHTML = "";
+
+
+        history.forEach(
+            record => {
+
+                let riskClass =
+                    "risk-low";
+
+
+                if (
+                    record.risk_level ===
+                    "High"
+                ) {
+
+                    riskClass =
+                        "risk-high";
+
+                }
+
+                else if (
+                    record.risk_level ===
+                    "Moderate"
+                ) {
+
+                    riskClass =
+                        "risk-moderate";
+
+                }
+
+
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+
+                    <td>
+                        ${record.date ?? "-"}
+                    </td>
+
+                    <td>
+                        ${record.forecast_date ?? "-"}
+                    </td>
+
+                    <td>
+                        ${record.disease ?? "-"}
+                    </td>
+
+                    <td>
+                        ${record.location ?? "-"}
+                    </td>
+
+                    <td>
+                        ${record.current_cases ?? "-"}
+                    </td>
+
+                    <td>
+                        ${record.predicted_cases ?? "-"}
+                    </td>
+
+                    <td>
+                        ${record.growth_rate ?? "-"}%
+                    </td>
+
+                    <td>
+                        ${record.risk_score ?? "-"}
+                    </td>
+
+                    <td>
+
+                        <span class="
+                            risk-badge
+                            ${riskClass}
+                        ">
+
+                            ${record.risk_level ?? "-"}
+
+                        </span>
+
+                    </td>
+
+                `;
+
+
+                body.appendChild(row);
+
+            }
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "History error:",
+            error
+        );
+
+    }
+
+}
+
+
+
+/* ==========================================
+   LOAD EVERYTHING
+========================================== */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        loadDashboardData();
+
+        loadModelEvaluation();
+
+        loadPredictionHistory();
+
+    }
+);
+
+
+</script>
+
+
+</body>
+
+</html>
